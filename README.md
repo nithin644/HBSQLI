@@ -19,28 +19,31 @@ Install HBSQLI with following steps:
 ```bash
 $ git clone https://github.com/SAPT01/HBSQLI.git
 $ cd HBSQLI
+$ chmod +x hbsqli.py
 $ pip3 install -r requirements.txt 
 ```
     
 ## Usage/Examples
 
 ```javascript
-usage: hbsqli.py [-h] [-l LIST] [-u URL] -p PAYLOADS -H HEADERS [-v]
+usage: hbsqli.py [-h] [-l LIST] [-u URL] -p PAYLOADS -H HEADERS [-v] [--cookie COOKIE] [-pp PROXY]
 
 options:
   -h, --help            show this help message and exit
-  -l LIST, --list LIST  To provide list of urls as an input
-  -u URL, --url URL     To provide single url as an input
-  -p PAYLOADS, --payloads PAYLOADS
-                        To provide payload file having Blind SQL Payloads with delay of 30 sec
-  -H HEADERS, --headers HEADERS
-                        To provide header file having HTTP Headers which are to be injected
-  -v, --verbose         Run on verbose mode
+  -l, --list LIST       List of URLs as input
+  -u, --url URL         Single URL as input
+  -p, --payloads PAYLOADS
+                        Payload file for Blind SQLi
+  -H, --headers HEADERS
+                        Header file for injection
+  -v, --verbose         Verbose mode
+  --cookie COOKIE       Cookie string for requests
+  -pp, --proxy PROXY    SOCKS5 proxy (e.g., socks5://127.0.0.1:9050)
 
 ```
 ### For Single URL:
 ```javascript
-$ python3 hbsqli.py -u "https://target.com" -p payloads.txt -H headers.txt -v
+$ python3 hbsqli.py -u "https://target.com" -p payloads.txt -H headers.txt -v -pp <proxy-if-u-need>
 ```
 ### For List of URLs:
 ```javascript
