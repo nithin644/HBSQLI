@@ -1,17 +1,34 @@
 
-# HBSQLI: Automated Tester For Header Based Blind SQL Injection
+# HBSQLI: Automated Header-Based Blind SQL Injection Tester
 
-HBSQLI is an automated command-line tool for performing Header Based Blind SQL injection attacks on web applications. It automates the process of detecting Header Based Blind SQL injection vulnerabilities, making it easier for security researchers , penetration testers & bug bounty hunters to test the security of web applications.
-![image](https://github.com/user-attachments/assets/70a158ac-60f7-4292-968b-d0316e041a99)
+**HBSQLI** is an automated command-line tool designed for detecting and exploiting **Header-Based Blind SQL Injection** vulnerabilities in web applications.  
+It streamlines the testing process, making it a powerful utility for **security researchers**, **penetration testers**, and **bug bounty hunters**.
 
-### Disclaimer:
-This tool is intended for authorized penetration testing and security assessment purposes only. Any unauthorized or malicious use of this tool is strictly prohibited and may result in legal action.
+This version is **heavily modified** from the original [SAPT01/HBSQLI](https://github.com/SAPT01/HBSQLI) repository, with new features and enhancements for advanced testing workflows.
 
-The authors and contributors of this tool do not take any responsibility for any damage, legal issues, or other consequences caused by the misuse of this tool. The use of this tool is solely at the user's own risk.
+![HBSQLI Screenshot](https://github.com/user-attachments/assets/70a158ac-60f7-4292-968b-d0316e041a99)
 
-Users are responsible for complying with all applicable laws and regulations regarding the use of this tool, including but not limited to, obtaining all necessary permissions and consents before conducting any testing or assessment.
+---
 
-By using this tool, users acknowledge and accept these terms and conditions and agree to use this tool in accordance with all applicable laws and regulations.
+## 🔹 New Features in This Version
+- **Cookie Injection Support** → Pass custom cookies with `--cookie` argument.
+- **Proxy Support** → Use `--proxy` (`-pp`) to route traffic through SOCKS5 proxies.
+- Improved **payload management** for flexible testing.
+- Cleaner **verbose mode** output.
+- Code optimizations and better error handling.
+
+---
+
+## ⚠ Disclaimer
+This tool is intended **only for authorized penetration testing and security assessments**.  
+Any **unauthorized** or **malicious** use is strictly prohibited and may result in legal consequences.
+
+- You are solely responsible for compliance with all **applicable laws**.
+- The authors take **no responsibility** for misuse, damages, or legal issues caused.
+- Obtain **written permission** before testing any system.
+
+By using this tool, you agree to these terms.
+
 ## Installation
 
 Install HBSQLI with following steps:
