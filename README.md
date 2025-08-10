@@ -59,4 +59,4 @@ To initiate the verbose mode just add **-v** in your command
 * You can use the provided headers file or even some more custom header in that file itself according to your need.
 ## Demo
 
-![hbsqli1](https://github.com/user-attachments/assets/9bc38aaa-c0d5-43ef-a405-78f0574f3c21)
+<video src="https://github.com/user-attachments/assets/9bc38aaa-c0d5-43ef-a405-78f0574f3c21" controls width="600"></video>
