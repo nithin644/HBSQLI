@@ -2,7 +2,7 @@
 # HBSQLI: Automated Tester For Header Based Blind SQL Injection
 
 HBSQLI is an automated command-line tool for performing Header Based Blind SQL injection attacks on web applications. It automates the process of detecting Header Based Blind SQL injection vulnerabilities, making it easier for security researchers , penetration testers & bug bounty hunters to test the security of web applications.
-![image](https://www.anonfile.la/a69692)
+![image](https://github.com/user-attachments/assets/70a158ac-60f7-4292-968b-d0316e041a99)
 
 ### Disclaimer:
 This tool is intended for authorized penetration testing and security assessment purposes only. Any unauthorized or malicious use of this tool is strictly prohibited and may result in legal action.
@@ -59,4 +59,4 @@ To initiate the verbose mode just add **-v** in your command
 * You can use the provided headers file or even some more custom header in that file itself according to your need.
 ## Demo
 
-![hbsqli1](https://www.anonfile.la/5e1a6d)
+![hbsqli1](https://github.com/user-attachments/assets/9bc38aaa-c0d5-43ef-a405-78f0574f3c21)
