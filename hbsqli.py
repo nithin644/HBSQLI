@@ -1,129 +1,197 @@
-from http.cookies import SimpleCookie
+from ast import arg
+from math import e
+from socket import timeout
+from ssl import SSLError
+from urllib.error import URLError
 import httpx
 import argparse
+import rich
 from rich.console import Console
 
-# Rich Console
+#Rich Console
 console = Console()
 
-# Argument Parser
+#Arguement Parser
 parser = argparse.ArgumentParser()
-parser.add_argument('-l', '--list', help='List of URLs as input')
-parser.add_argument('-u', '--url', help='Single URL as input')
-parser.add_argument('-p', '--payloads', help='Payload file for Blind SQLi', required=True)
-parser.add_argument('-H', '--headers', help='Header file for injection', required=True)
-parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
-parser.add_argument('--cookie', help='Cookie string for requests')
-parser.add_argument('-pp', '--proxy', help='SOCKS5 proxy (e.g., socks5://127.0.0.1:9050)')
+
+parser.add_argument('-l', '--list', help='To provide list of urls as an input')
+parser.add_argument('-u', '--url', help='To provide single url as an input')
+parser.add_argument('-p', '--payloads', help='To provide payload file having Blind SQL Payloads with delay of 30 sec', required=True)
+parser.add_argument('-H', '--headers', help='To provide header file having HTTP Headers which are to be injected', required=True)
+parser.add_argument('-v', '--verbose', help='Run on verbose mode', action='store_true')
+parser.add_argument('-c', '--cookie', help='Cookie string to include in requests', required=False)
+parser.add_argument('-pp', '--proxy', help='Proxy string (e.g., socks5://127.0.0.1:9050)', required=False)
 args = parser.parse_args()
 
-# Statistics
-total_tests = 0
-vulnerable_urls = set()
-vulnerable_tests = 0
+#Header Payload Creation
 
-def load_file(filename):
-    try:
-        with open(filename, 'r', encoding='utf-8', errors='replace') as f:
-            return [line.strip() for line in f if line.strip()]
-    except Exception as e:
-        console.print(f"[red]Error loading {filename}: {e}[/]")
-        exit(1)
+# Open the Payloads file and read its contents into a list
+try:
+   with open(args.payloads, 'r') as file:
+      payloads = [line.strip() for line in file]
+except FileNotFoundError as e:
+   print(str(e))
+except PermissionError as e:
+   print(str(e))
+except IOError as e:
+   print(str(e))
 
-# Load payloads and headers
-payloads = load_file(args.payloads)
-headers = load_file(args.headers)
+# Open the Headers file and read its contents into a list
+try:
+   with open(args.headers, 'r') as file:
+      headers = [line.strip() for line in file]
+except FileNotFoundError as e:
+   print(str(e))
+except PermissionError as e:
+   print(str(e))
+except IOError as e:
+   print(str(e))
 
-# Prepare headers with payloads
-headers_dict = {}
+
+
+
+# Function to sanitize all non-ASCII characters and ensure valid header values
+import re
+from urllib.parse import quote
+def sanitize_ascii(s):
+    # Remove non-ASCII characters
+    s = ''.join(c for c in s if ord(c) < 128)
+    # Collapse multiple spaces
+    s = re.sub(r' +', ' ', s)
+    # Strip leading/trailing spaces
+    return s.strip()
+
+
+headers_list = []
 for header in headers:
+    sanitized_header = sanitize_ascii(header)
     for payload in payloads:
-        headers_dict[f"{header}: {payload}"] = payload
+        sanitized_payload = sanitize_ascii(payload)
+        var = sanitized_header + ": " + sanitized_payload
+        headers_list.append(var)
 
-# Parse cookies
-cookies = {}
-if args.cookie:
-    try:
-        cookie = SimpleCookie()
-        cookie.load(args.cookie.replace('\\', ''))  # Clean cookie string
-        cookies = {k: v.value for k, v in cookie.items()}
-    except Exception as e:
-        console.print(f"[yellow]Warning: Invalid cookie format: {e}[/]")
+headers_dict = {header: header.split(": ")[1] for header in headers_list}
 
-# Configure transport
-transport = None
-if args.proxy:
-    try:
-        transport = httpx.HTTPTransport(proxy=args.proxy)
-    except Exception as e:
-        console.print(f"[yellow]Warning: Proxy setup failed: {e}[/]")
+def add_cookie_to_header(header_dict):
+    if args.cookie:
+        header_dict['Cookie'] = args.cookie
+    return header_dict
 
-def sanitize_header_value(value):
-    """Ensure header values are ASCII-compatible"""
-    return value.encode('ascii', 'replace').decode('ascii')
+def get_client():
+    if args.proxy:
+        return httpx.Client(timeout=60, proxy=args.proxy, verify=False)
+    else:
+        return httpx.Client(timeout=60)
 
-def make_request(url, header_key):
-    global total_tests, vulnerable_urls, vulnerable_tests
-    
-    total_tests += 1
-    try:
-        header_name, header_value = header_key.split(": ", 1)
-        headers = {header_name: sanitize_header_value(header_value)}
-        
-        with httpx.Client(
-            timeout=30,
-            cookies=cookies,
-            transport=transport,
-            follow_redirects=True
-        ) as client:
-            response = client.get(url, headers=headers)
-            res_time = response.elapsed.total_seconds()
-            
-            if 25 <= res_time <= 50:
-                vulnerable_urls.add(url)
-                vulnerable_tests += 1
-                return True, res_time
-            return False, res_time
-    except Exception as e:
-        if args.verbose:
-            console.print(f"[yellow]Request failed: {str(e)}[/]")
-        return None, 0
+#For File as an Input
+def onfile():
+   # Open the URL file and read its contents into a list
+   with open(args.list, 'r') as file:
+      urls = [line.strip() for line in file]
 
-def test_url(url):
-    for header in headers_dict:
-        if args.verbose:
-            console.print(f"🌐 [cyan]Testing URL:[/] {url}")
-            console.print(f"💉 [cyan]Testing Header:[/] {repr(header)}")
-        
-        is_vuln, res_time = make_request(url, header)
-        
-        if args.verbose:
-            if is_vuln is None:
-                console.print(f"[red]Request failed[/]")
-            else:
-                console.print(f"⏱️ [cyan]Response Time:[/] {res_time:.2f}s")
-                status = "[red]Vulnerable[/]" if is_vuln else "[green]Not Vulnerable[/]"
-                console.print(f"🐞 [cyan]Status:[/] {status}")
+   for url in urls:
+      for header in headers_dict:
+         cust_header = {header.split(": ")[0]: header.split(": ")[1]}
+         cust_header = add_cookie_to_header(cust_header)
+         try:
+            with get_client() as client:
+               response = client.get(url, headers=cust_header, follow_redirects=True)
+            res_time=response.elapsed.total_seconds()
+
+            if res_time >=float(25) and res_time <=float(50):
+               console.print("🌐 [bold][cyan]Testing for URL: [/][/]", url)
+               console.print ("💉 [bold][cyan]Testing for Header: [/][/]", repr(header))
+               console.print("⏱️ [bold][cyan]Response Time: [/][/]", repr(res_time))
+               console.print("🐞 [bold][cyan]Status: [/][red]Vulnerable[/][/]")
+               print()
+         except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, SSLError, URLError, ConnectionResetError, httpx.RequestError) as e:
+            print(f"The request was not successful due to: {e}")
             print()
+            pass       
+         
+#For File as an Input-Verbose
+def onfile_v():
+   # Open the UR file and read its contents into a list
+   with open(args.list, 'r') as file:
+       urls = [line.strip() for line in file]
 
-def print_stats():
-    console.print("\n[bold]===== Results =====[/]")
-    console.print(f"🔢 [cyan]Total tests:[/] {total_tests}")
-    console.print(f"⚠️  [cyan]Vulnerable URLs:[/] {len(vulnerable_urls)}")
-    console.print(f"💉 [cyan]Vulnerable tests:[/] {vulnerable_tests}")
-    
-    if vulnerable_urls:
-        save = input("\nSave vulnerable URLs? (y/n): ").lower()
-        if save == 'y':
-            filename = input("Filename: ")
-            try:
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write("\n".join(vulnerable_urls))
-                console.print(f"[green]Saved to {filename}[/]")
-            except Exception as e:
-                console.print(f"[red]Error saving file: {e}[/]")
+   for url in urls:
+      for header in headers_dict:
+         cust_header = {header.split(": ")[0]: header.split(": ")[1]}
+         cust_header = add_cookie_to_header(cust_header)
+         console.print("🌐 [bold][cyan]Testing for URL: [/][/]", url)
+         console.print ("💉 [bold][cyan]Testing for Header: [/][/]", repr(header))
+         try:
+            with get_client() as client:
+               response = client.get(url, headers=cust_header, follow_redirects=True)
+            console.print("🔢 [bold][cyan]Status code: [/][/]", response.status_code)
+            res_time=response.elapsed.total_seconds()
+            console.print("⏱️ [bold][cyan]Response Time: [/][/]", repr(res_time))
 
-# Banner (fixed escape sequences)
+            if res_time >=float(25) and res_time <=float(50):
+               console.print("[🐞bold][cyan]Status: [/][red]Vulnerable[/][/]" )
+               print()
+            else:
+               console.print ("🐞[bold][cyan]Status: [/][green]Not Vulnerable[/][/]")
+               print()
+         except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, SSLError, URLError, ConnectionResetError, httpx.RequestError) as e:
+            print(f"The request was not successful due to: {e}")
+            print()
+            pass 
+
+#For URL as an Input
+def onurl():
+   # Save URL as Variable
+   url = args.url
+
+   for header in headers_dict:
+      cust_header = {header.split(": ")[0]: header.split(": ")[1]}
+      cust_header = add_cookie_to_header(cust_header)
+      try:
+         with get_client() as client:
+            response = client.get(url, headers=cust_header, follow_redirects=True)
+         res_time=response.elapsed.total_seconds()
+
+         if res_time >=float(25) and res_time <=float(50):
+            console.print("🌐 [bold][cyan]Testing for URL: [/][/]", url)
+            console.print ("💉 [bold][cyan]Testing for Header: [/][/]", repr(header))
+            console.print("⏱️ [bold][cyan]Response Time: [/][/]", repr(res_time))
+            console.print("🐞 [bold][cyan]Status: [/][red]Vulnerable[/][/]")
+            print()       
+      except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, SSLError, URLError, ConnectionResetError, httpx.RequestError) as e:
+         print(f"The request was not successful due to: {e}")
+         print()
+         pass 
+        
+#For URL as an Input-Verbose
+def onurl_v():
+   #Save URL as Variable
+   url = args.url
+
+   for header in headers_dict:
+      cust_header = {header.split(": ")[0]: header.split(": ")[1]}
+      cust_header = add_cookie_to_header(cust_header)
+      console.print("🌐 [bold][cyan]Testing for URL: [/][/]", url)
+      console.print ("💉 [bold][cyan]Testing for Header: [/][/]", repr(header))
+      try:
+         with get_client() as client:
+            response = client.get(url, headers=cust_header, follow_redirects=True)
+         console.print("🔢 [bold][cyan]Status code: [/][/]", response.status_code)
+         res_time=response.elapsed.total_seconds()
+         console.print("⏱️ [bold][cyan]Response Time: [/][/]", repr(res_time))
+
+         if res_time >=float(25) and res_time <=float(50):
+            console.print("🐞 [bold][cyan]Status: [/][red]Vulnerable[/][/]")
+            print()
+         else:
+            console.print ("🐞[bold][cyan]Status: [/][green]Not Vulnerable[/][/]")
+            print()        
+      except (UnicodeDecodeError, AssertionError, TimeoutError, ConnectionRefusedError, SSLError, URLError, ConnectionResetError, httpx.RequestError) as e:
+         print(f"The request was not successful due to: {e}")
+         print()
+         pass         
+
+#Banner
 console.print('''[royal_blue1]                
    ▄█    █▄    ▀█████████▄     ▄████████ ████████▄    ▄█        ▄█  
   ███    ███     ███    ███   ███    ███ ███    ███  ███       ███  
@@ -138,17 +206,15 @@ console.print('''[royal_blue1]
 
 ''')
 
-# Main execution
-if args.url:
-    test_url(args.url)
-elif args.list:
-    try:
-        urls = load_file(args.list)
-        for url in urls:
-            test_url(url)
-    except Exception as e:
-        console.print(f"[red]Error reading URL list: {e}[/]")
+if args.url != None:
+   if args.verbose:
+      onurl_v()
+   else:
+      onurl()
+elif args.list != None:
+   if args.verbose:
+      onfile_v()
+   else:
+      onfile()
 else:
-    console.print("[red]Error: Provide either -u or -l option[/]")
-
-print_stats()
+   print("Error: One out of the two flag -u or -l is required")
