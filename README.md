@@ -43,7 +43,7 @@ $ pip3 install -r requirements.txt
 ## Usage/Examples
 
 ```javascript
-usage: hbsqli.py [-h] [-l LIST] [-u URL] -p PAYLOADS -H HEADERS [-v] [--cookie COOKIE] [-pp PROXY]
+usage: hbsqli.py [-h] [-l LIST] [-u URL] -p PAYLOADS -H HEADERS [-v] [--cookie COOKIE] [-pp PROXY] [-t threads]
 
 options:
   -h, --help            show this help message and exit
@@ -56,6 +56,7 @@ options:
   -v, --verbose         Verbose mode
   --cookie COOKIE       Cookie string for requests
   -pp, --proxy PROXY    SOCKS5 proxy (e.g., socks5://127.0.0.1:9050)
+  -t , --threads        To add More threads  (default = 5).
 
 ```
 ### For Single URL:
