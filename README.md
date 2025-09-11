@@ -10,7 +10,7 @@ This version is **heavily modified** from the original [SAPT01/HBSQLI](https://g
 
 ---
 
-## 🔹 New Features in This Version
+## 🔹 New Features in This Version 
 - **Cookie Injection Support** → Pass custom cookies with `--cookie` argument.
 - **Proxy Support** → Use `--proxy` (`-pp`) to route traffic through SOCKS5 proxies.
 - Improved **payload management** for flexible testing.
@@ -46,17 +46,18 @@ $ pip3 install -r requirements.txt
 usage: hbsqli.py [-h] [-l LIST] [-u URL] -p PAYLOADS -H HEADERS [-v] [--cookie COOKIE] [-pp PROXY] [-t threads]
 
 options:
-  -h, --help            show this help message and exit
-  -l, --list LIST       List of URLs as input
-  -u, --url URL         Single URL as input
-  -p, --payloads PAYLOADS
-                        Payload file for Blind SQLi
-  -H, --headers HEADERS
-                        Header file for injection
-  -v, --verbose         Verbose mode
-  --cookie COOKIE       Cookie string for requests
-  -pp, --proxy PROXY    SOCKS5 proxy (e.g., socks5://127.0.0.1:9050)
-  -t , --threads        To add More threads  (default = 5).
+-l, --list  To provide list of urls as an input
+-u, --url   To provide single url as an input
+-p, --payloads  Payload file having Blind SQL Payloads
+-H, --headers Header file having HTTP Headers
+-v, --verbose  help='Run in verbose mode'
+-c, --cookie  help='Cookie string to include in requests')
+-pp, --proxy Proxy string (e.g., socks5://127.0.0.1:9050)
+-t, --threads help='Number of concurrent threads (default=5)
+--delay-min  Minimum delay threshold in seconds (default=25)
+--delay-max  Maximum delay threshold in seconds (default=50)
+--no-urlencode  Disable URL encoding of payloads
+
 
 ```
 ### For Single URL:
